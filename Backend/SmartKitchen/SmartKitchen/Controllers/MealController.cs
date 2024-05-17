@@ -21,7 +21,7 @@ public class MealController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<Meal> GetOrder(string mealName)
+    public ActionResult<Meal> GetMeal(string mealName)
     {
         try
         {
@@ -68,7 +68,8 @@ public class MealController : ControllerBase
     {
         try
         {
-            _mealRepository.DeleteMeal(mealName);
+            var mealToDelete = _mealRepository.GetMeal(mealName);
+            _mealRepository.DeleteMeal(mealToDelete);
             return Ok("Meal deleted");
         }
         catch (Exception e)
