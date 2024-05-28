@@ -1,6 +1,6 @@
 ﻿namespace SmartKitchen.Model;
 
-public enum Role
+public enum Roles
 {
     Admin,
     User
