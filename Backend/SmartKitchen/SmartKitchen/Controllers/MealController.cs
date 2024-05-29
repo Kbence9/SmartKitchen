@@ -11,6 +11,7 @@ public class MealController : ControllerBase
 {
     private readonly IMealRepository _mealRepository;
     private readonly UserManager<User> _userManager;
+    private readonly IConfigurationRoot _config;
 
     public MealController(
         IMealRepository mealRepository, 
@@ -18,19 +19,23 @@ public class MealController : ControllerBase
     {
         _mealRepository = mealRepository;
         _userManager = userManager;
+        _config = new ConfigurationBuilder()
+            .AddUserSecrets<MealController>()
+            .Build();
     }
 
     [HttpGet]
-    public ActionResult<Meal> GetMeal(string mealName)
+    public async Task<string> GetMeal(string mealName)
     {
         try
         {
-            var meal = _mealRepository.GetMeal(mealName);
-            return Ok(meal);
+            using var client = new HttpClient();
+            var response = await client.GetAsync($"{_config["BASE_URL_RECIPES"]}&q={mealName}&app_id={_config["APPLICATION_ID_RECIPES"]}&app_key={_config["APPLICATION_KEY_RECIPES"]}");
+            return await response.Content.ReadAsStringAsync();
         }
         catch (Exception e)
         {
-            return NotFound("Meal not found");
+            return "Meal not found";
         }
     }
 
@@ -49,11 +54,11 @@ public class MealController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<int>> AddMeal(Meal mealToAdd)
+    public async Task<ActionResult<int>> AddMeal(string mealName)
     {
         try
         {
-            _mealRepository.AddMeal(mealToAdd);
+            _mealRepository.AddMeal(new Meal(mealName));
             return Ok();
         }
         catch (Exception e)
