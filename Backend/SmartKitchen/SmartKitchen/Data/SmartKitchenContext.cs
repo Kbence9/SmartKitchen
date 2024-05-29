@@ -10,6 +10,8 @@ public class SmartKitchenContext : IdentityDbContext<User, IdentityRole, string>
     public DbSet<User> Users { get; set; }
     public DbSet<Ingredient> Ingredients { get; set; }
     public DbSet<Meal> Meals { get; set; }
+    
+    public DbSet<Refrigerator> Refrigerators { get; set; }
 
     public SmartKitchenContext()
     {
@@ -19,6 +21,8 @@ public class SmartKitchenContext : IdentityDbContext<User, IdentityRole, string>
         : base(options)
     {
     }
+    
+    
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
