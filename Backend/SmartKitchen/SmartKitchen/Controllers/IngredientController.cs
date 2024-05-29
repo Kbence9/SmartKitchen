@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Collections.ObjectModel;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SmartKitchen.Model;
 using SmartKitchen.Service.Repository;
@@ -11,6 +12,7 @@ public class IngredientController : ControllerBase
 {
     private readonly IIngredientRepository _ingredientRepository;
     private readonly UserManager<User> _userManager;
+    private readonly IConfigurationRoot _config;
 
     public IngredientController(
         IIngredientRepository ingredientRepository, 
@@ -18,28 +20,32 @@ public class IngredientController : ControllerBase
     {
         _ingredientRepository = ingredientRepository;
         _userManager = userManager;
+        _config = new ConfigurationBuilder()
+            .AddUserSecrets<IngredientController>()
+            .Build();
     }
 
     [HttpGet]
-    public ActionResult<Ingredient> GetIngredient(string ingredientName)
+    public async Task<string> GetIngredient(string ingredientName)
     {
         try
         {
-            var ingredient = _ingredientRepository.GetIngredient(ingredientName);
-            return Ok(ingredient);
+            using var client = new HttpClient();
+            var response = await client.GetAsync($"{_config["BASE_URL_FOOD"]}?app_id={_config["APPLICATION_ID_FOOD"]}&app_key={_config["APPLICATION_KEY_FOOD"]}&ingr={ingredientName}&nutrition-type=cooking");
+            return await response.Content.ReadAsStringAsync();
         }
         catch (Exception e)
         {
-            return NotFound("Ingredient not found");
+            return "Ingredient not found";
         }
     }
 
     [HttpPost]
-    public async Task<ActionResult<int>> AddIngredient(Ingredient ingredientToAdd)
+    public async Task<ActionResult<int>> AddIngredient(string name, float enercKcal, float procnt, float fat, float chocdf, float fibtg, string? image)
     {
         try
         {
-            _ingredientRepository.AddIngredient(ingredientToAdd);
+            _ingredientRepository.AddIngredient(new Ingredient(name, enercKcal, procnt, fat, chocdf, fibtg, image));
             return Ok();
         }
         catch (Exception e)
